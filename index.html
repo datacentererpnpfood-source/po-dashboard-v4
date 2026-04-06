@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PO Actual Dashboard V4 - Q1 ปี 2569 (ม.ค.–มี.ค.)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+<!-- SheetJS for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+/* ── Organic Green Palette ── */
+--bg:#f0faf4;--card:#fff;--primary:#2f855a;--primary-light:#c6f6d5;
+--primary-dark:#276749;--accent:#68d391;--bg-soft:#f0fff4;
+--green:#276749;--green-bg:#d1fae5;--red:#c53030;--red-bg:#fed7d7;
+--yellow:#b7791f;--yellow-bg:#fefcbf;
+--gray:#718096;--gray-bg:#f7fafc;--border:#e2e8f0;
+--shadow:0 1px 4px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+--shadow-lg:0 4px 12px rgba(0,0,0,.09),0 2px 6px rgba(0,0,0,.06);
+--radius:14px;--radius-sm:9px;
+}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:#1f2937;font-size:14px;line-height:1.5}
+/* ════ HEADER ════════════════════════════════════════ */
+.header{
+  background:linear-gradient(135deg,#1f7a4c 0%,#276749 30%,#38a169 65%,#48bb78 100%);
+  color:#fff;padding:0 32px;height:68px;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 2px 12px rgba(0,0,0,.2);flex-shrink:0;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+/* Left cluster */
+.header-left{display:flex;align-items:center;gap:14px}
+.header-icon-wrap{
+  width:42px;height:42px;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:10px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0;
+}
+.header-titles{display:flex;flex-direction:column;gap:1px}
+.header h1{font-size:20px;font-weight:800;letter-spacing:-.3px;line-height:1.25;color:#fff}
+.header .subtitle{font-size:13px;font-weight:500;opacity:.9;color:#bbf7d0;margin:0}
+.header-desc{
+  font-size:11px;opacity:.7;color:#d1fae5;
+  letter-spacing:.15px;margin-top:1px;
+  display:flex;align-items:center;gap:0;white-space:nowrap;
+}
+/* Right metadata block */
+.header-right{display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0}
+.header-meta-row{
+  display:flex;align-items:center;gap:5px;
+  font-size:11.5px;color:rgba(255,255,255,.75);
+  white-space:nowrap;
+}
+.header-meta-row i{opacity:.7;flex-shrink:0}
+.header-meta-val{color:#fff;font-weight:700;opacity:1}
+@media(max-width:900px){
+  .header{padding:0 16px;height:auto;min-height:64px;padding-top:12px;padding-bottom:12px}
+  .header-desc{display:none}
+  .header-right{display:none}
+}
+.container{max-width:1700px;margin:0 auto;padding:16px 24px}
+
+/* Tabs */
+.tab-bar{display:flex;gap:0;background:var(--card);border-radius:var(--radius) var(--radius) 0 0;box-shadow:var(--shadow);margin-bottom:0;overflow:hidden}
+.tab-btn{padding:14px 28px;font-size:13px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--gray);border-bottom:3px solid transparent;transition:all .2s}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);background:rgba(37,99,235,.04)}
+.tab-btn:hover:not(.active){background:var(--gray-bg)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.tab-body{background:var(--card);border-radius:0 0 var(--radius) var(--radius);box-shadow:var(--shadow);padding:4px 0;margin-bottom:16px}
+
+/* Filter */
+.filter-panel{background:var(--card);border-radius:var(--radius);padding:16px 20px;margin-bottom:14px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.filter-group{display:flex;flex-direction:column;gap:3px}
+.filter-group label{font-size:11px;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.5px}
+.filter-group select,.filter-group input{padding:7px 10px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;background:#fff;min-width:160px;outline:none}
+.filter-group select:focus,.filter-group input:focus{border-color:var(--primary)}
+.toggle-group{display:flex;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.toggle-btn{padding:7px 14px;font-size:11px;border:none;cursor:pointer;background:#fff;color:var(--gray);font-weight:600;transition:all .2s}
+.toggle-btn.active{background:var(--primary);color:#fff}
+.date-range{display:flex;gap:6px;align-items:center}
+.date-range span{font-size:11px;color:var(--gray)}
+.item-display{font-size:11px;color:var(--primary);margin-top:2px;font-style:italic}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px}
+.kpi-card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .2s}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.kpi-label{font-size:11px;font-weight:600;color:var(--gray);margin-bottom:6px;text-transform:uppercase}
+.kpi-value{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.kpi-sub{font-size:10px;color:var(--gray);margin-top:3px}
+.kpi-card.positive .kpi-value{color:var(--green)} .kpi-card.positive{border-left:4px solid var(--green)}
+.kpi-card.negative .kpi-value{color:var(--red)} .kpi-card.negative{border-left:4px solid var(--red)}
+.kpi-card.neutral .kpi-value{color:var(--gray)} .kpi-card.neutral{border-left:4px solid var(--border)}
+.kpi-card.warning .kpi-value{color:var(--yellow)} .kpi-card.warning{border-left:4px solid var(--yellow)}
+/* KPI semantic colours */
+.kpi-good{color:#276749!important}.kpi-warning{color:#b7791f!important}.kpi-danger{color:#c53030!important}
+/* Card hover: lift + green border tint */
+.kpi-card:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(47,133,90,.12);border-color:#9ae6b4}
+.section-card:hover{box-shadow:0 4px 14px rgba(47,133,90,.09)}
+.kpi-icon{position:absolute;right:14px;top:14px;font-size:28px;opacity:.15}
+
+/* Risk Badge */
+.risk-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;margin-left:8px;vertical-align:middle}
+.risk-green{background:var(--green-bg);color:var(--green)}
+.risk-yellow{background:var(--yellow-bg);color:var(--yellow)}
+.risk-red{background:var(--red-bg);color:var(--red)}
+
+/* Charts */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.chart-card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.chart-card h3{font-size:13px;font-weight:700;color:#374151;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.chart-card h3 .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.chart-container{position:relative;height:280px}
+
+/* Section card */
+.section-card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+.section-card h3{font-size:13px;font-weight:700;color:#374151;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+
+/* Table */
+.table-wrap{overflow-x:auto;max-height:400px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+thead{position:sticky;top:0;z-index:2}
+th{background:#f0fdf4;padding:8px 10px;text-align:left;font-weight:700;color:#374151;border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+tr:hover{background:#f8fafc}
+tr.neg-diff{background:var(--red-bg)}
+tr.neg-diff:hover{background:#fecaca}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.neg{color:var(--red);font-weight:600}
+.pos{color:var(--green);font-weight:600}
+
+/* Excel-style table */
+.excel-controls{display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+.excel-controls button{padding:7px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:#fff;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.excel-controls button:hover{border-color:var(--primary);color:var(--primary)}
+.excel-controls button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.excel-wrap{position:relative;overflow:auto;max-height:600px;border:1px solid var(--border);border-radius:var(--radius-sm)}
+.excel-wrap table{font-size:11px}
+.excel-wrap th{position:sticky;top:0;z-index:3;background:#e2e8f0}
+.excel-wrap .frozen{position:sticky;left:0;z-index:1;background:#f8fafc}
+.excel-wrap thead .frozen{z-index:4;background:#e2e8f0}
+.pagination{display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:center}
+.pagination button{padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer;font-size:12px}
+.pagination button:hover{border-color:var(--primary)}
+.pagination button.active{background:var(--primary);color:#fff}
+.pagination span{font-size:12px;color:var(--gray)}
+
+/* Ranking */
+.ranking-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+.rank-card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.rank-card h4{font-size:12px;font-weight:700;color:#374151;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--border)}
+.rank-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+.rank-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:10px;font-weight:700;margin-right:8px;flex-shrink:0}
+.rank-1{background:#fbbf24;color:#78350f} .rank-2{background:#d1d5db;color:#374151} .rank-3{background:#d97706;color:#fff}
+.rank-4,.rank-5{background:#f3f4f6;color:var(--gray)}
+
+/* Root Cause */
+.rc-item{padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:8px;font-size:12px;line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+.rc-item.capacity{background:#fef3c7;border-left:3px solid #f59e0b}
+.rc-item.fulfillment{background:var(--red-bg);border-left:3px solid var(--red)}
+.rc-item.anomaly{background:#ede9fe;border-left:3px solid #7c3aed}
+.rc-item.info{background:var(--primary-light);border-left:3px solid var(--primary)}
+.rc-item.success{background:var(--green-bg);border-left:3px solid var(--green)}
+.rc-item.warn{background:var(--yellow-bg);border-left:3px solid var(--yellow)}
+.rc-item.danger{background:var(--red-bg);border-left:3px solid var(--red)}
+.rc-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+
+/* AI Agent */
+.chat-box{border:1.5px solid var(--border);border-radius:var(--radius-sm);height:260px;overflow-y:auto;padding:12px;margin-bottom:10px;background:#fafbfc}
+.chat-msg{margin-bottom:10px;display:flex;gap:8px}
+.chat-msg.user{justify-content:flex-end}
+.chat-msg .bubble{max-width:85%;padding:10px 14px;border-radius:12px;font-size:12px;line-height:1.6}
+.chat-msg.user .bubble{background:var(--primary);color:#fff;border-bottom-right-radius:4px}
+.chat-msg.bot .bubble{background:#f1f5f9;color:#1f2937;border-bottom-left-radius:4px}
+.chat-input{display:flex;gap:8px}
+.chat-input input{flex:1;padding:9px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;outline:none}
+.chat-input input:focus{border-color:var(--primary)}
+.chat-input button{padding:9px 20px;background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);font-weight:600;cursor:pointer;font-size:12px}
+.examples{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.examples button{padding:5px 10px;border:1px solid var(--border);border-radius:14px;background:#fff;font-size:10px;cursor:pointer;color:var(--gray);transition:all .2s}
+.examples button:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+
+.tab-btn{padding:10px 16px;font-size:12px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--gray);border-bottom:3px solid transparent;transition:all .2s;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.tab-ico{font-size:13px}
+.oi-section{background:var(--card);border-radius:var(--radius);padding:0;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;border-top:4px solid #38a169}
+.oi-hdr{display:flex;align-items:center;gap:10px;padding:12px 18px;background:linear-gradient(135deg,#f0fff4,#e6fffa);border-bottom:1px solid #c6f6d5}
+.oi-title{font-size:14px;font-weight:800;color:#1a4731}.oi-badge{background:#38a169;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px}
+.oi-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:14px}
+.ai-section{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+.ai-section-hdr{display:flex;align-items:center;gap:10px;padding:12px 18px;background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-bottom:1px solid #bbf7d0}
+.ai-section-title{font-size:14px;font-weight:800;color:#14532d}.ai-badge{background:#16a34a;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px}
+.ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}
+.exec-section{margin-bottom:14px;background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border-top:4px solid #38a169}
+.exec-hdr{display:flex;align-items:center;gap:10px;padding:14px 20px 12px;background:linear-gradient(135deg,#f0fff4,#e6fffa);border-bottom:1px solid #c6f6d5}
+.exec-hdr-icon{font-size:22px;flex-shrink:0}.exec-hdr-title{font-size:15px;font-weight:800;color:#1a4731}
+.exec-badge{background:#38a169;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px}.exec-updated{font-size:10px;color:#6b7280;margin-left:auto}
+.exec-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0}
+.exec-card{padding:16px 18px;border-right:1px solid #f3f4f6;border-bottom:1px solid #f3f4f6}.exec-card:nth-child(4n){border-right:none}
+.exec-card-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.exec-card-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.exec-card-ico.blue{background:#c6f6d5}.exec-card-ico.red{background:#fee2e2}.exec-card-ico.amber{background:#fef3c7}.exec-card-ico.green{background:#dcfce7}
+.exec-card-ttl{font-size:11px;font-weight:700;color:#374151}
+.exec-status-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.exec-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.exec-chip.green{background:#dcfce7;color:#15803d}.exec-chip.yellow{background:#fef9c3;color:#a16207}.exec-chip.red{background:#fee2e2;color:#b91c1c}
+.exec-bullets{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:5px}
+.exec-bullet{display:flex;align-items:flex-start;gap:7px;font-size:11.5px;color:#374151;line-height:1.5}
+.exec-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.exec-dot.red{background:#ef4444}.exec-dot.amber{background:#f59e0b}.exec-dot.green{background:#22c55e}.exec-dot.blue{background:#3b82f6}.exec-dot.gray{background:#9ca3af}
+.exec-highlight{font-weight:700;color:#1f2937}
+.rmr-filter-panel{background:var(--card);border-radius:var(--radius);padding:12px 16px;margin-bottom:10px;box-shadow:var(--shadow);display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;border:1px solid var(--border)}
+.rmr-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:12px;flex-wrap:wrap}
+.rmr-search{padding:7px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;min-width:240px;outline:none;font-family:inherit}
+.rmr-search:focus{border-color:var(--primary)}
+.rmr-export-btn{display:flex;align-items:center;gap:6px;padding:8px 18px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:700;cursor:pointer}
+.rmr-export-btn:hover{opacity:.88}
+.rmr-reset-btn{padding:7px 14px;background:#f1f5f9;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-weight:600;color:var(--gray);cursor:pointer}
+.rmr-reset-btn:hover{background:#e2e8f0}
+.rmr-tbl-wrap{overflow-x:auto;border-radius:var(--radius);box-shadow:var(--shadow);background:var(--card)}
+.rmr-tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
+.rmr-th{padding:9px 11px;background:#f1f5f9;border-bottom:2px solid #cbd5e1;font-weight:700;color:#374151;white-space:nowrap;position:sticky;top:0;z-index:2;text-align:left}
+.rmr-th.rmr-num{text-align:right}.rmr-sortable{cursor:pointer;user-select:none}.rmr-sortable:hover{background:#e2e8f0}
+.rmr-sort-icon{font-size:10px;color:#94a3b8;margin-left:3px;min-width:10px;display:inline-block}
+.rmr-tbl td{padding:7px 11px;border-bottom:1px solid #f1f5f9;white-space:nowrap}.rmr-tbl tr:hover td{background:#f8fafc}
+.rmr-num{text-align:right}.rmr-shortage{color:#dc2626;font-weight:700}
+.rmr-pager{display:flex;align-items:center;justify-content:center;gap:5px;padding:12px 0 4px;flex-wrap:wrap}
+.rmr-pg-btn{padding:5px 11px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:#fff;font-size:12px;cursor:pointer;min-width:32px;text-align:center}
+.rmr-pg-btn:hover{background:#eef2ff;border-color:var(--primary);color:var(--primary)}.rmr-pg-btn.active-pg{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:700}
+.rmr-pg-btn:disabled{opacity:.35;cursor:not-allowed}.rmr-no-data{text-align:center;padding:40px 16px;color:var(--gray);font-size:13px}
+.rmr-risk{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.rmr-risk-0{background:#f1f5f9;color:#64748b}.rmr-risk-1{background:#dcfce7;color:#15803d}.rmr-risk-2{background:#fff7ed;color:#c2410c}.rmr-risk-3{background:#fee2e2;color:#b91c1c}
+.mini-tbl{width:100%;border-collapse:collapse}.mini-tbl th{padding:4px 6px;text-align:left;border-bottom:2px solid #cbd5e1;font-weight:700;color:#374151;font-size:11px}
+.mini-tbl td{padding:4px 6px;border-bottom:1px solid #f1f5f9;font-size:11px}.mini-tbl tr:hover td{background:#f8fafc}
+.rm-exec-grid{display:grid;grid-template-columns:auto 1fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px;align-items:stretch}
+.rm-exec-card{background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.08);border:1px solid #e2e8f0}
+.rm-exec-label{font-size:10px;font-weight:700;color:#64748b;letter-spacing:.3px;text-transform:uppercase;margin-bottom:3px}
+.rm-exec-val{font-size:20px;font-weight:800;color:#1e293b;line-height:1.1}.rm-exec-sub{font-size:10px;color:#94a3b8;margin-top:2px}
+.rm-gauge-card{background:#fff;border-radius:10px;padding:10px 14px 6px;box-shadow:0 1px 4px rgba(0,0,0,.08);border:1px solid #e2e8f0;display:flex;flex-direction:column;align-items:center;min-width:150px}
+.rm-gauge-label{font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;text-align:center;margin-top:2px}
+.rm-heatmap-section{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);border:1px solid #e2e8f0;margin-bottom:14px}
+.rm-heatmap-title{font-size:12px;font-weight:700;color:#374151;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.rm-heatmap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.rm-heat-tile{border-radius:8px;padding:8px 10px;cursor:pointer;transition:transform .15s;min-height:74px;display:flex;flex-direction:column;justify-content:space-between}
+.rm-heat-tile:hover{transform:translateY(-3px)}
+.rm-heat-critical{background:#7f1d1d;color:#fecaca}.rm-heat-high{background:#dc2626;color:#fff}.rm-heat-warning{background:#ea580c;color:#fff}.rm-heat-normal{background:#15803d;color:#dcfce7}.rm-heat-none{background:#e2e8f0;color:#64748b}
+.rm-heat-name{font-size:10px;font-weight:700;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.rm-heat-impact{font-size:11px;font-weight:700;margin-top:4px}.rm-heat-short{font-size:9px;opacity:.82;margin-top:1px}
+.rm-ranking-section{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);border:1px solid #e2e8f0;margin-bottom:14px;overflow-x:auto}
+.rm-ranking-title{font-size:12px;font-weight:700;color:#374151;margin-bottom:10px}
+.rm-ranking-tbl{width:100%;border-collapse:collapse;font-size:11px;min-width:560px}
+.rm-ranking-tbl th{padding:7px 10px;background:#f8fafc;font-weight:700;color:#374151;border-bottom:2px solid #e2e8f0;white-space:nowrap;text-align:left}
+.rm-ranking-tbl th.num{text-align:right}.rm-ranking-tbl td{padding:6px 10px;border-bottom:1px solid #f1f5f9;white-space:nowrap}.rm-ranking-tbl td.num{text-align:right}
+.rm-ranking-tbl tr:hover td{background:#fef9f9}.rm-rank-crit td{background:#fef2f2!important}
+.rm-rank-badge{display:inline-flex;width:22px;height:22px;border-radius:50%;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0}
+.rm-rank-1{background:#ef4444;color:#fff}.rm-rank-2{background:#f97316;color:#fff}.rm-rank-3{background:#f59e0b;color:#fff}.rm-rank-n{background:#e2e8f0;color:#374151}
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}.chart-grid,.ranking-grid{grid-template-columns:1fr}}
+@media(max-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.filter-panel{flex-direction:column}}
+
+/* ════ SIDEBAR LAYOUT ════════════════════════════════ */
+/* Hide old horizontal tab-bar; sidebar takes over nav */
+.tab-bar{display:none!important}
+/* Full-page flex layout below header */
+.app-layout{display:flex;align-items:flex-start}
+/* ── Sidebar shell ── */
+.sidebar{
+  width:220px;flex-shrink:0;
+  background:#0f172a;
+  min-height:calc(100vh - 68px);
+  position:sticky;top:0;height:100vh;
+  overflow-y:auto;overflow-x:hidden;
+  display:flex;flex-direction:column;
+  transition:width .25s cubic-bezier(.4,0,.2,1);
+  z-index:200;
+  border-right:1px solid rgba(255,255,255,.06);
+}
+.sidebar.collapsed{width:64px}
+/* ── Toggle row ── */
+.sidebar-toggle-wrap{
+  padding:14px 14px 12px;
+  display:flex;align-items:center;
+  justify-content:space-between;gap:8px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  flex-shrink:0;
+}
+.sidebar.collapsed .sidebar-toggle-wrap{justify-content:center}
+.sidebar-brand{
+  font-size:13px;font-weight:800;color:#e2e8f0;
+  letter-spacing:.3px;white-space:nowrap;overflow:hidden;
+  flex:1;min-width:0;
+}
+.sidebar-brand span{color:#6ee7b7}
+.sidebar.collapsed .sidebar-brand{display:none}
+.sidebar-toggle-btn{
+  background:rgba(255,255,255,.07);border:none;border-radius:6px;
+  color:#94a3b8;padding:6px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s,color .2s;flex-shrink:0;
+}
+.sidebar-toggle-btn:hover{background:rgba(255,255,255,.15);color:#e2e8f0}
+/* ── Nav area ── */
+.sidebar-nav{padding:8px 0;flex:1}
+.sidebar-section-label{
+  font-size:9px;font-weight:700;color:#475569;
+  text-transform:uppercase;letter-spacing:.8px;
+  padding:10px 18px 4px;white-space:nowrap;overflow:hidden;
+  transition:opacity .2s;
+}
+.sidebar.collapsed .sidebar-section-label{opacity:0;pointer-events:none}
+.sidebar-divider{height:1px;background:rgba(255,255,255,.07);margin:6px 10px}
+/* ── Nav item (override horizontal .tab-btn) ── */
+.sidebar .tab-btn{
+  display:flex;align-items:center;gap:11px;
+  width:100%;padding:11px 16px 11px 18px;
+  font-size:12.5px;font-weight:600;
+  color:#94a3b8;background:transparent;
+  border:none;border-left:3px solid transparent;
+  border-radius:0 8px 8px 0;
+  cursor:pointer;text-align:left;
+  white-space:nowrap;overflow:hidden;
+  transition:background .18s,color .18s,border-color .18s;
+  margin:1px 8px 1px 0;
+}
+.sidebar .tab-btn:hover:not(.active){
+  background:rgba(255,255,255,.07);color:#cbd5e1;
+}
+.sidebar .tab-btn.active{
+  background:linear-gradient(90deg,rgba(47,133,90,.28),rgba(47,133,90,.08));
+  color:#68d391;border-left-color:#38a169;
+  font-weight:700;
+}
+/* Collapsed: center icons, hide labels */
+.sidebar.collapsed .tab-btn{
+  padding:12px;justify-content:center;
+  margin:1px 4px;border-radius:8px;
+  border-left-color:transparent!important;
+}
+.sidebar.collapsed .tab-btn.active{
+  background:rgba(47,133,90,.28);color:#68d391;
+}
+.sidebar .nav-icon{
+  width:17px;height:17px;flex-shrink:0;stroke-width:2;
+  transition:transform .2s;
+}
+.sidebar .tab-btn:hover .nav-icon{transform:scale(1.1)}
+.sidebar .nav-label{transition:opacity .2s;white-space:nowrap;overflow:hidden}
+.sidebar.collapsed .nav-label{display:none}
+/* ── Tooltip on collapsed hover ── */
+.sidebar.collapsed .tab-btn{position:relative}
+.sidebar.collapsed .tab-btn::after{
+  content:attr(data-tooltip);
+  position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:#1e293b;color:#e2e8f0;
+  font-size:11.5px;font-weight:600;padding:5px 10px;
+  border-radius:6px;white-space:nowrap;pointer-events:none;
+  opacity:0;transition:opacity .15s;z-index:300;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+.sidebar.collapsed .tab-btn:hover::after{opacity:1}
+/* ── Main content ── */
+.main-content{flex:1;min-width:0;overflow-x:hidden}
+/* Adjust tab-body radius: no top-left since sidebar is nav */
+.tab-body{border-radius:var(--radius)!important}
+/* Scrollbar styling for sidebar */
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-track{background:transparent}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px}
+/* Responsive: auto-collapse below 900px */
+@media(max-width:900px){
+  .sidebar{width:64px}
+  .sidebar .nav-label{display:none}
+  .sidebar .tab-btn{padding:12px;justify-content:center;margin:1px 4px;border-radius:8px;border-left-color:transparent!important}
+  .sidebar .tab-btn.active{background:rgba(47,133,90,.28);color:#68d391}
+  .sidebar-brand{display:none}
+  .sidebar-section-label{opacity:0}
+  .sidebar-toggle-wrap{justify-content:center}
+}
+
+/* ══════════════════════════════════════════════════════
+   FORCE OVERRIDE — beats inline style="" attributes
+   ══════════════════════════════════════════════════════ */
+
+/* 1. Tab content: increase section breathing room */
+.tab-content{padding:20px!important}
+
+/* 2. Main content area: soft green wash */
+.main-content{background:#f0faf4!important}
+
+/* 3. Universal card polish — every card type gets consistent radius + shadow */
+.kpi-card,
+.section-card,
+.chart-card,
+.rank-card,
+.rm-exec-card,
+.rm-gauge-card,
+.rm-heatmap-section,
+.rm-ranking-section,
+.oi-section,
+.exec-section,
+.ai-section,
+.filter-panel,
+.rmr-filter-panel{
+  border-radius:16px!important;
+  box-shadow:0 4px 14px rgba(0,0,0,.07),0 1px 4px rgba(0,0,0,.05)!important;
+}
+
+/* 4. KPI card: green left-bar accent for neutral state (default before JS updates class) */
+.kpi-card{
+  border-left:4px solid #cbd5e0!important;
+  background:#fff!important;
+  transition:transform .2s,box-shadow .2s,border-color .2s!important;
+}
+.kpi-card.positive{border-left:4px solid var(--green)!important}
+.kpi-card.negative{border-left:4px solid var(--red)!important}
+.kpi-card.warning {border-left:4px solid var(--yellow)!important}
+.kpi-card.neutral {border-left:4px solid #cbd5e0!important}
+.kpi-card:hover{
+  transform:translateY(-4px)!important;
+  box-shadow:0 8px 24px rgba(47,133,90,.14)!important;
+}
+
+/* 5. KPI value font — prevent JS inline font-size from making text tiny */
+.kpi-value{font-size:24px!important;font-weight:800!important;line-height:1.1!important}
+/* Exception: explicitly shrunken values (RM tab top-RM / peak-day) */
+#rmKpiTopRM .kpi-value,
+#rmKpiPeakDay .kpi-value,
+div.kpi-value[style*="font-size:14px"]{font-size:14px!important}
+
+/* 6. Table improvements */
+table{border-collapse:collapse!important}
+thead{position:sticky!important;top:0!important;z-index:2!important}
+th{
+  background:#e9f9f0!important;
+  color:#1a4731!important;
+  font-weight:700!important;
+  border-bottom:2px solid #9ae6b4!important;
+  padding:9px 11px!important;
+}
+td{padding:7px 10px!important;border-bottom:1px solid #edf2f7!important}
+tr:nth-child(even)>td{background:#f4fdf7!important}
+tr:hover>td{background:#e9f9f0!important}
+/* Keep neg-diff override */
+tr.neg-diff>td{background:var(--red-bg)!important}
+tr.neg-diff:hover>td{background:#fecaca!important}
+
+/* 7. exec-section / oi-section: replace indigo (#6366f1) with green brand */
+.exec-section,
+.oi-section{border-top:4px solid #38a169!important}
+.exec-hdr,
+.oi-hdr{
+  background:linear-gradient(135deg,#f0fff4,#e6fffa)!important;
+  border-bottom:1px solid #c6f6d5!important;
+}
+.exec-hdr-title,
+.oi-title{color:#1a4731!important}
+.exec-badge,
+.oi-badge{background:#38a169!important}
+
+/* 8. ai-section header: already green, just reinforce */
+.ai-section-hdr{background:linear-gradient(135deg,#f0fff4,#dcfce7)!important;border-bottom:1px solid #bbf7d0!important}
+.ai-section-title{color:#14532d!important}
+.ai-badge{background:#2f855a!important}
+
+/* 9. rm-exec-card: green brand tones */
+.rm-exec-card,.rm-gauge-card{
+  background:#fff!important;
+  border:1px solid #d1fae5!important;
+}
+.rm-exec-label{color:#276749!important}
+.rm-exec-val{color:#1a3d2b!important}
+
+/* 10. heatmap / ranking sections */
+.rm-heatmap-section,.rm-ranking-section{border:1px solid #d1fae5!important}
+.rm-heatmap-title,.rm-ranking-title{color:#276749!important}
+
+/* 11. exec-card icon colours */
+.exec-card-ico.blue{background:#c6f6d5!important;color:#2f855a!important}
+.exec-card-ico.green{background:#bbf7d0!important;color:#276749!important}
+
+/* 12. Section-card heading dots + titles */
+.section-card h3{color:#1a4731!important}
+.chart-card h3{color:#1a4731!important}
+
+/* 13. Filter panel: focus border green */
+.filter-group select:focus,
+.filter-group input:focus{border-color:#38a169!important;outline:none!important}
+
+/* 14. Sidebar: subtle top accent line */
+.sidebar::before{
+  content:'';display:block;height:3px;width:100%;
+  background:linear-gradient(90deg,#276749,#68d391);
+  flex-shrink:0;
+}
+
+/* 15. Header-left: guaranteed flex visibility */
+.header-left{display:flex!important;align-items:center!important;gap:14px!important}
+.header-titles{display:flex!important;flex-direction:column!important}
+.header h1{display:block!important;color:#fff!important;font-size:20px!important;font-weight:800!important}
+
+/* 16. rmr-export button keep green */
+.rmr-export-btn{background:linear-gradient(135deg,#2f855a,#276749)!important}
+.rmr-export-btn:hover{opacity:.88!important}
+
+/* 17. Toggle-btn active green */
+.toggle-btn.active{background:#2f855a!important;border-color:#2f855a!important;color:#fff!important}
+
+/* 18. rc-item.info border: green instead of primary blue */
+.rc-item.info{background:#f0fff4!important;border-left:3px solid #38a169!important}
+.rc-item.success{background:#f0fff4!important;border-left:3px solid #276749!important}
+
+/* 19. kpi-grid gap increase */
+.kpi-grid{gap:14px!important;margin-bottom:18px!important}
+
+/* 20. Pagination active green */
+.pagination button.active,
+.rmr-pg-btn.active-pg{background:#2f855a!important;border-color:#2f855a!important;color:#fff!important}
+
+/* end force overrides */
+/* AI Preset Buttons */
+.ai-preset-btn{padding:6px 13px;border:1.5px solid var(--border);border-radius:20px;background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:#374151;transition:all .2s;white-space:nowrap}
+.ai-preset-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);transform:translateY(-1px)}
+.ai-preset-critical{border-color:#fca5a5;color:#c53030;background:#fff5f5}
+.ai-preset-critical:hover{background:#fed7d7!important;border-color:#c53030!important;color:#c53030!important}
+.ai-preset-warn{border-color:#fbd38d;color:#b7791f;background:#fffff0}
+.ai-preset-warn:hover{background:#fefcbf!important;border-color:#b7791f!important;color:#b7791f!important}
+.ai-preset-anomaly{border-color:#d6bcfa;color:#6b46c1;background:#faf5ff}
+.ai-preset-anomaly:hover{background:#e9d8fd!important;border-color:#6b46c1!important;color:#6b46c1!important}
+.ai-preset-report{border-color:#9ae6b4;color:#276749;background:#f0fff4}
+.ai-preset-report:hover{background:#c6f6d5!important;border-color:#276749!important;color:#276749!important}
+/* AI section heading */
+.section-card h3{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800}
+
+/* ──────────────────────────────────────────────────────────
+   RM Planning Engine
+   ────────────────────────────────────────────────────────── */
+.rmp-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.rmp-title{font-size:13px;font-weight:700;color:var(--primary);display:flex;align-items:center;gap:6px}
+.rmp-ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rmp-kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.rmp-kpi{background:#fff;border-radius:10px;padding:12px 16px;border:1px solid var(--border);display:flex;flex-direction:column;gap:2px;box-shadow:var(--shadow)}
+.rmp-kpi-val{font-size:22px;font-weight:800;line-height:1}
+.rmp-kpi-lbl{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+.rmp-tbl-wrap{overflow:auto;max-height:500px;border-radius:8px;border:1px solid var(--border)}
+.rmp-tbl{width:100%;font-size:11px;border-collapse:collapse;min-width:900px}
+.rmp-tbl thead th{position:sticky;top:0;z-index:2;background:#1e4d2b;color:#fff;padding:7px 10px;text-align:left;white-space:nowrap;font-weight:600;font-size:11px}
+.rmp-tbl thead th.rmp-num{text-align:right}
+.rmp-tbl tbody tr:nth-child(even){background:#f8fff9}
+.rmp-tbl tbody td{padding:6px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle;white-space:nowrap}
+.rmp-tbl tbody td.rmp-num{text-align:right;font-variant-numeric:tabular-nums}
+.rmp-tbl tbody td.rmp-note{white-space:normal;max-width:200px;font-size:10px;color:#6b7280}
+.rmp-tbl tbody tr:hover td{background:#f0fdf4!important}
+.rmp-badge-crit{background:#fef2f2;color:#b91c1c;font-weight:700;padding:2px 8px;border-radius:4px;font-size:10px;display:inline-block}
+.rmp-badge-warn{background:#fff7ed;color:#c2410c;font-weight:700;padding:2px 8px;border-radius:4px;font-size:10px;display:inline-block}
+.rmp-badge-safe{background:#f0fdf4;color:#15803d;font-weight:700;padding:2px 8px;border-radius:4px;font-size:10px;display:inline-block}
+.rmp-row-crit td{background:#fff5f5!important}
+.rmp-row-warn td{background:#fffbf0!important}
+.rmp-export-btn{background:linear-gradient(135deg,#276749,#38a169);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap}
+.rmp-export-btn:hover{opacity:.88}
+.rmp-refresh-btn{background:#e8f5e9;color:#276749;border:1.5px solid #a7f3d0;padding:6px 13px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
+.rmp-refresh-btn:hover{background:#d1fae5}
+.rmp-buf-input{width:58px;padding:4px 6px;border:1px solid #d1d5db;border-radius:5px;font-size:11px;text-align:right}
+/* ── RM Planning: advanced filter panel ── */
+.rmp-fp{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;margin-bottom:12px}
+.rmp-fp-row{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px}
+.rmp-fp-row:last-child{margin-bottom:0}
+.rmp-fp-group{display:flex;flex-direction:column;gap:3px}
+.rmp-fp-group label{font-size:10px;font-weight:600;color:#64748b}
+.rmp-fp-group select,.rmp-fp-group input[type=text],.rmp-fp-group input[type=number]{height:28px;border:1px solid #cbd5e1;border-radius:5px;padding:0 8px;font-size:11px;background:#fff;color:var(--text);min-width:100px}
+.rmp-day-bar{display:flex;gap:4px;align-items:center}
+.rmp-day-lbl{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:5px;border:1px solid #cbd5e1;background:#fff;cursor:pointer;font-size:11px;font-weight:600;color:#64748b;transition:all .15s}
+.rmp-day-lbl input{display:none}
+.rmp-day-lbl.rmp-day-on{background:#1a6b3a;border-color:#1a6b3a;color:#fff}
+.rmp-w2-badge{display:inline-block;margin-left:10px;padding:2px 8px;border-radius:10px;background:#dbeafe;color:#1d4ed8;font-size:10px;font-weight:600}
+.rmp-quick-btn{padding:3px 10px;border-radius:5px;border:1px solid #cbd5e1;background:#fff;font-size:10px;font-weight:600;color:#64748b;cursor:pointer;transition:all .15s}
+.rmp-quick-btn:hover{background:#f1f5f9;border-color:#94a3b8}
+.rmp-stock-btn{display:inline-block;padding:3px 12px;border-radius:5px;border:1px solid #6366f1;background:#eef2ff;font-size:10px;font-weight:600;color:#4f46e5;cursor:pointer;transition:all .15s}
+.rmp-stock-btn:hover{background:#e0e7ff}
+.rmp-stock-badge{display:inline-block;padding:2px 10px;border-radius:10px;background:#f1f5f9;color:#64748b;font-size:10px;font-weight:600;max-width:480px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<div class="header">
+
+  <!-- LEFT: brand + titles -->
+  <div class="header-left">
+    <div class="header-icon-wrap">
+      <i data-lucide="leaf" style="width:22px;height:22px;color:#6ee7b7"></i>
+    </div>
+    <div class="header-titles">
+      <h1>PO Actual Dashboard V3</h1>
+      <div class="subtitle">Procurement &amp; Supply Fulfillment Intelligence</div>
+      <div class="header-desc">
+        Demand vs Delivered Analytics &nbsp;•&nbsp; Shortage Risk Monitoring &nbsp;•&nbsp; RM Impact Analysis
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: system metadata -->
+  <div class="header-right">
+    <div class="header-meta-row">
+      <i data-lucide="calendar" style="width:13px;height:13px"></i>
+      <span>Data Period:&nbsp;<span class="header-meta-val">Q1 2026 (ม.ค.–มี.ค.)</span></span>
+    </div>
+    <div class="header-meta-row">
+      <i data-lucide="clock" style="width:13px;height:13px"></i>
+      <span class="header-meta-val" id="lastUpdate">—</span>
+      <button onclick="refreshDashboardData()" title="Refresh data.json"
+        style="margin-left:8px;background:none;border:1px solid rgba(255,255,255,.3);color:#fff;
+        border-radius:4px;padding:1px 8px;font-size:11px;cursor:pointer;opacity:.8">🔄</button>
+    </div>
+    <div class="header-meta-row" style="opacity:.7">
+      <i data-lucide="database" style="width:13px;height:13px"></i>
+      <span class="header-meta-val">Last Date: <span id="debugDate" style="font-weight:600;color:#2563eb">—</span></span>
+    </div>
+    <div class="header-meta-row">
+      <i data-lucide="building-2" style="width:13px;height:13px"></i>
+      <span class="header-meta-val">Naturals Premium Food</span>
+    </div>
+  </div>
+
+</div>
+
+
+<div class="app-layout" id="appLayout">
+
+<!-- ═══ SIDEBAR NAV ════════════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+
+  <div class="sidebar-toggle-wrap">
+    <span class="sidebar-brand">NPF <span>Dashboard</span></span>
+    <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Menu">
+      <i data-lucide="menu" style="width:18px;height:18px"></i>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">เมนูหลัก</div>
+
+    <button class="tab-btn active" data-tab="exec"
+            data-tooltip="ภาพรวม" onclick="switchTab('exec')">
+      <i data-lucide="leaf" class="nav-icon"></i>
+      <span class="nav-label">ภาพรวม</span>
+    </button>
+
+    <button class="tab-btn" data-tab="trend"
+            data-tooltip="แนวโน้ม" onclick="switchTab('trend')">
+      <i data-lucide="trending-up" class="nav-icon"></i>
+      <span class="nav-label">แนวโน้ม</span>
+    </button>
+
+    <button class="tab-btn" data-tab="root"
+            data-tooltip="วิเคราะห์ปัญหา" onclick="switchTab('root')">
+      <i data-lucide="alert-triangle" class="nav-icon"></i>
+      <span class="nav-label">วิเคราะห์ปัญหา</span>
+    </button>
+
+    <button class="tab-btn" data-tab="ops"
+            data-tooltip="Operational" onclick="switchTab('ops')">
+      <i data-lucide="activity" class="nav-icon"></i>
+      <span class="nav-label">Operational</span>
+    </button>
+
+    <button class="tab-btn" data-tab="impact"
+            data-tooltip="Business Impact" onclick="switchTab('impact')">
+      <i data-lucide="dollar-sign" class="nav-icon"></i>
+      <span class="nav-label">Business Impact</span>
+    </button>
+
+    <button class="tab-btn" data-tab="fgshortage"
+            data-tooltip="FG Shortage Analysis" onclick="switchTab('fgshortage')">
+      <i data-lucide="package-minus" class="nav-icon"></i>
+      <span class="nav-label">FG Shortage</span>
+    </button>
+
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section-label">ข้อมูล</div>
+
+    <button class="tab-btn" data-tab="excel"
+            data-tooltip="ตารางข้อมูล" onclick="switchTab('excel')">
+      <i data-lucide="table" class="nav-icon"></i>
+      <span class="nav-label">ตารางข้อมูล</span>
+    </button>
+
+    <button class="tab-btn" data-tab="rm"
+            data-tooltip="RM Intelligence" onclick="switchTab('rm')">
+      <i data-lucide="brain" class="nav-icon"></i>
+      <span class="nav-label">RM Intelligence</span>
+    </button>
+
+    <button class="tab-btn" data-tab="rmreport"
+            data-tooltip="RM Report" onclick="switchTab('rmreport')">
+      <i data-lucide="file-spreadsheet" class="nav-icon"></i>
+      <span class="nav-label">RM Report</span>
+    </button>
+
+    <button class="tab-btn" data-tab="rmplan"
+            data-tooltip="RM Planning" onclick="switchTab('rmplan')">
+      <i data-lucide="clipboard-list" class="nav-icon"></i>
+      <span class="nav-label">RM Planning</span>
+    </button>
+
+  </nav>
+</aside><!-- end sidebar -->
+
+<!-- ═══ MAIN CONTENT ═════════════════════════════════== -->
+<div class="main-content" id="mainContent">
+
+<div class="container">
+
+<!-- GLOBAL FILTERS -->
+<div class="filter-panel" id="filterPanel">
+<div class="filter-group"><label>กลุ่ม (Group)</label><select id="fGroup"><option value="">ทั้งหมด</option></select></div>
+<div class="filter-group"><label>ลูกค้า (Customer)</label><select id="fCustomer"><option value="">ทั้งหมด</option></select></div>
+<div class="filter-group"><label>โหมดรายการ</label>
+<div class="toggle-group">
+<button class="toggle-btn active" id="togCust" onclick="setItemMode('customer')">รายการลูกค้า</button>
+<button class="toggle-btn" id="togInt" onclick="setItemMode('internal')">รายการภายใน</button>
+</div></div>
+<div class="filter-group"><label id="itemLabel">รายการลูกค้า</label><select id="fItem"><option value="">ทั้งหมด</option></select><div class="item-display" id="itemDisplay"></div></div>
+<div class="filter-group"><label>รหัสสินค้า</label><select id="fItemCode"><option value="">ทั้งหมด</option></select></div>
+<div class="filter-group"><label>ช่วงวันที่</label><div class="date-range"><input type="date" id="fDateFrom" value="2026-01-01"><span>ถึง</span><input type="date" id="fDateTo" value="2026-03-31"></div></div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+<button class="tab-btn active" data-tab="exec"      onclick="switchTab('exec')"><span class="tab-ico">📊</span>ภาพรวม</button>
+<button class="tab-btn"        data-tab="trend"     onclick="switchTab('trend')"><span class="tab-ico">📈</span>แนวโน้ม</button>
+<button class="tab-btn"        data-tab="root"      onclick="switchTab('root')"><span class="tab-ico">🔍</span>วิเคราะห์ปัญหา</button>
+<button class="tab-btn"        data-tab="ops"       onclick="switchTab('ops')"><span class="tab-ico">⚡</span>Operational</button>
+<button class="tab-btn"        data-tab="impact"    onclick="switchTab('impact')"><span class="tab-ico">💸</span>Business Impact</button>
+<button class="tab-btn"        data-tab="fgshortage" onclick="switchTab('fgshortage')"><span class="tab-ico">📦</span>FG Shortage</button>
+<button class="tab-btn"        data-tab="excel"     onclick="switchTab('excel')"><span class="tab-ico">📋</span>ตารางข้อมูล</button>
+<button class="tab-btn"        data-tab="rm"        onclick="switchTab('rm')"><span class="tab-ico">🧪</span>RM Intelligence</button>
+<button class="tab-btn"        data-tab="rmreport"  onclick="switchTab('rmreport')"><span class="tab-ico">📤</span>RM Report</button>
+<button class="tab-btn"        data-tab="rmplan"    onclick="switchTab('rmplan')"><span class="tab-ico">🧩</span>RM Planning</button>
+</div>
+<div class="tab-body">
+
+<!-- ═══ TAB 1: ภาพรวม ═══ -->
+<div class="tab-content active" id="tabExec" style="padding:16px">
+<div class="kpi-grid">
+<div class="kpi-card neutral"><div class="kpi-label">ยอดสั่งรวม</div><div class="kpi-value" id="kpiOrder">-</div><div class="kpi-sub" id="kpiOrderSub"></div><div class="kpi-icon">📦</div></div>
+<div class="kpi-card neutral"><div class="kpi-label">ยอดส่งจริง</div><div class="kpi-value" id="kpiActual">-</div><div class="kpi-sub" id="kpiActualSub"></div><div class="kpi-icon">🚚</div></div>
+<div class="kpi-card neutral"><div class="kpi-label">ส่วนต่าง (Diff)</div><div class="kpi-value" id="kpiDiff">-</div><div class="kpi-sub" id="kpiDiffSub"></div><div class="kpi-icon">📊</div></div>
+<div class="kpi-card neutral"><div class="kpi-label">% บรรลุเป้าหมาย</div><div class="kpi-value" id="kpiPct">-</div><div class="kpi-sub" id="kpiPctSub"></div><div class="kpi-icon">🎯</div></div>
+<div class="kpi-card neutral"><div class="kpi-label">Diff ติดลบ</div><div class="kpi-value" id="kpiNeg">-</div><div class="kpi-sub" id="kpiNegSub"></div><div class="kpi-icon">⚠️</div></div>
+</div>
+<div class="oi-section" style="margin-top:14px">
+<div class="oi-hdr"><span style="font-size:20px">🌡️</span><span class="oi-title">Demand vs Supply Stress Index</span><span class="oi-badge">Live</span><span style="font-size:10px;color:var(--gray);margin-left:auto" id="stressTs"></span></div>
+<div id="stressContainer" class="oi-grid" style="grid-template-columns:1fr"><div class="rc-item info"><span class="rc-icon">⏳</span>กำลังคำนวณ Stress Index…</div></div>
+</div>
+<div class="exec-section">
+<div class="exec-hdr"><span class="exec-hdr-icon">📊</span><span class="exec-hdr-title">สรุปสถานการณ์ระบบ (AI Executive Summary)</span><span class="exec-badge">Auto Generated</span><span class="exec-updated" id="execTimestamp"></span></div>
+<div class="exec-grid" id="execSummaryGrid"><div style="grid-column:1/-1;text-align:center;color:var(--gray);padding:20px;font-size:12px">⏳ กำลังสรุปสถานการณ์…</div></div>
+</div>
+</div><!-- end tabExec -->
+
+<!-- ═══ TAB 2: แนวโน้ม ═══ -->
+<div class="tab-content" id="tabTrend" style="padding:16px">
+<div class="chart-grid">
+<div class="chart-card"><h3><span class="dot" style="background:var(--primary)"></span>แนวโน้มยอดสั่ง vs ยอดส่ง</h3><div class="chart-container"><canvas id="trendChart"></canvas></div></div>
+<div class="chart-card"><h3><span class="dot" style="background:#f59e0b"></span>ส่วนต่างรายวัน (Diff)</h3><div class="chart-container"><canvas id="diffChart"></canvas></div></div>
+</div>
+<div class="chart-grid" style="margin-top:14px">
+<div class="section-card"><h3>📅 Anomaly Detection</h3><div id="smartNotes"><div style="color:var(--gray);font-size:12px;padding:8px">⏳ กำลังวิเคราะห์…</div></div></div>
+<div class="ai-section" style="margin:0">
+<div class="ai-section-hdr"><span style="font-size:18px">🤖</span><span class="ai-section-title">AI Supply Chain Insights</span><span class="ai-badge">Auto</span><span style="font-size:10px;color:var(--gray);margin-left:auto" id="aiTimestamp"></span></div>
+<div class="ai-grid" id="aiInsightsGrid"><div class="rc-item info" style="grid-column:1/-1"><span class="rc-icon">🔧</span>AI analysis temporarily disabled — dashboard data is unaffected</div></div>
+</div>
+</div>
+</div><!-- end tabTrend -->
+
+<!-- ═══ TAB 3: วิเคราะห์ปัญหา ═══ -->
+<div class="tab-content" id="tabRoot" style="padding:16px">
+<div class="ranking-grid" id="rankingSection">
+<div class="rank-card"><h4>ลูกค้า Diff ติดลบสูงสุด</h4><div id="rankCust"></div></div>
+<div class="rank-card"><h4>สินค้า Diff ติดลบสูงสุด</h4><div id="rankItem"></div></div>
+<div class="rank-card"><h4>วันที่ Diff มากที่สุด</h4><div id="rankDate"></div></div>
+</div>
+<div class="section-card" style="margin-top:14px"><h3>🔍 วิเคราะห์สาเหตุ (Root Cause)</h3><div id="rootCause"></div></div>
+<div class="section-card" style="margin-top:14px">
+<h3>ตารางข้อมูล <span id="tableCount" style="font-weight:400;color:var(--gray);font-size:11px"></span></h3>
+<div class="table-wrap"><table id="dataTable"><thead><tr></tr></thead><tbody id="tableBody"></tbody></table></div>
+</div>
+</div><!-- end tabRoot -->
+
+<!-- ═══ TAB 4: Operational Intelligence ═══ -->
+<div class="tab-content" id="tabOps" style="padding:16px">
+<div class="oi-grid" id="opsGrid"><div class="rc-item info" style="grid-column:1/-1"><span class="rc-icon">⏳</span>กำลังวิเคราะห์ข้อมูลปฏิบัติการ…</div></div>
+</div><!-- end tabOps -->
+
+<!-- ═══ TAB 5: Business Impact ═══ -->
+<div class="tab-content" id="tabImpact" style="padding:16px">
+<div class="oi-grid" id="impactGrid"><div class="rc-item info" style="grid-column:1/-1"><span class="rc-icon">⏳</span>กำลังคำนวณผลกระทบทางธุรกิจ…</div></div>
+<div class="section-card" style="margin-top:14px">
+<h3>🤖 AI Decision Engine</h3>
+<div class="examples" style="margin-bottom:8px;opacity:.45;pointer-events:none" title="AI temporarily disabled">
+  <button class="ai-preset-btn ai-preset-critical" disabled>🚨 Top 5 RM Shortage</button>
+  <button class="ai-preset-btn ai-preset-warn" disabled>⚠️ Fill Rate &lt; 50%</button>
+  <button class="ai-preset-btn" disabled>📊 เปรียบเทียบกลุ่ม</button>
+  <button class="ai-preset-btn ai-preset-anomaly" disabled>🔎 Anomaly Detection</button>
+  <button class="ai-preset-btn" disabled>📈 วิเคราะห์แนวโน้ม</button>
+  <button class="ai-preset-btn ai-preset-report" disabled>📋 รายงานครบถ้วน</button>
+</div>
+<div style="font-size:10px;color:var(--gray);margin-bottom:8px">หรือพิมพ์คำถามด้านล่าง: Top 5 ลูกค้า, ยอดส่ง [ลูกค้า], วันที่ Diff ติดลบ, สรุปภาพรวม</div>
+<div class="chat-box" id="chatBox"></div>
+<div class="chat-input"><input type="text" id="chatInput" placeholder="พิมพ์คำถามเกี่ยวกับข้อมูล..." onkeydown="if(event.key==='Enter')sendChat()"><button onclick="sendChat()">ถาม</button></div>
+</div>
+</div><!-- end tabImpact -->
+
+<!-- ═══ TAB: FG Shortage Analysis ═══ -->
+<div class="tab-content" id="tabFgshortage" style="padding:16px">
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap">
+  <h3 style="margin:0;font-size:16px;font-weight:700;color:#1e293b">📦 RM Shortage Analysis</h3>
+</div>
+<!-- RM-specific independent filters (Group + Customer + Date — all data-level) -->
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;padding:10px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px">
+  <label style="font-size:11px;color:#374151;font-weight:600">Group:</label>
+  <select id="fgGroup" style="font-size:11px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;min-width:100px">
+    <option value="">ทั้งหมด</option>
+  </select>
+  <label style="font-size:11px;color:#374151;font-weight:600;margin-left:6px">Customer:</label>
+  <select id="rmCustomer" style="font-size:11px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer;min-width:120px">
+    <option value="">ทั้งหมด</option>
+  </select>
+  <label style="font-size:11px;color:#374151;font-weight:600;margin-left:6px">From:</label>
+  <input type="date" id="fgDateFrom" style="font-size:11px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer">
+  <label style="font-size:11px;color:#374151;font-weight:600;margin-left:2px">To:</label>
+  <input type="date" id="fgDateTo" style="font-size:11px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer">
+</div>
+<!-- Shortage-specific controls -->
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+    <label style="font-size:11px;color:#6b7280;font-weight:500">Shortage Type:</label>
+    <select id="fgsFilterType" style="font-size:11px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer">
+      <option value="all">All</option>
+      <option value="zero">Zero Delivery (ACT=0)</option>
+      <option value="partial">Partial Shortage (ACT&lt;ORD)</option>
+    </select>
+    <label style="font-size:11px;color:#6b7280;font-weight:500;margin-left:8px">Sort:</label>
+    <select id="fgsSortBy" style="font-size:11px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer">
+      <option value="gap">Gap DESC</option>
+      <option value="order">Order DESC</option>
+      <option value="fillrate">Fill Rate ASC</option>
+    </select>
+    <label style="font-size:11px;color:#6b7280;font-weight:500;margin-left:8px">Top N:</label>
+    <select id="fgsTopN" style="font-size:11px;padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;cursor:pointer">
+      <option value="20">20</option>
+      <option value="50" selected>50</option>
+      <option value="100">100</option>
+      <option value="0">All</option>
+    </select>
+    <span style="margin-left:12px;border-left:1px solid #e2e8f0;padding-left:12px">
+      <button id="fgsExcToggle"
+        style="font-size:11px;padding:4px 10px;border:1px solid #d1d5db;border-radius:6px;background:#f1f5f9;color:#374151;cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:5px"
+        title="มะนาว (code 01010402000) ถูก exclude by default">
+        <span id="fgsExcIcon">🚫</span> มะนาว: ซ่อน
+      </button>
+    </span>
+</div>
+<div id="fgsKpiBar" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px"></div>
+<div id="fgsTableWrap" style="overflow-x:auto">
+  <div style="text-align:center;color:#9ca3af;padding:40px;font-size:12px">กดเลือก Tab นี้เพื่อแสดงข้อมูล</div>
+</div>
+</div><!-- end tabFgshortage -->
+
+<!-- ═══ TAB 6: ตารางข้อมูล ═══ -->
+<div class="tab-content" id="tabExcel" style="padding:16px">
+<div class="excel-controls">
+<button class="active" id="exUnitBtn" onclick="setExcelUnit('unit')">Unit</button>
+<button id="exKgBtn" onclick="setExcelUnit('kg')">KG</button>
+<button onclick="exportCSV()" style="background:var(--green);color:#fff;border-color:var(--green)">Export CSV</button>
+<span style="font-size:12px;color:var(--gray)" id="excelInfo"></span>
+</div>
+<div class="excel-wrap" id="excelWrap">
+<table id="excelTable"><thead><tr id="excelHead"></tr></thead><tbody id="excelBody"></tbody></table>
+</div>
+<div class="pagination" id="excelPagination"></div>
+</div><!-- end tabExcel -->
+
+<!-- ═══ TAB 7: RM Intelligence ═══ -->
+<div class="tab-content" id="tabRm" style="padding:16px">
+
+<!-- SECTION 1: RM KPI Cards — first, directly under filter -->
+<div class="kpi-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px">
+<div class="kpi-card neutral"><div class="kpi-label">RM Demand รวม (KG)</div><div class="kpi-value" id="rmKpiDemand">-</div><div class="kpi-sub" id="rmKpiDemandSub"></div><div class="kpi-icon">📦</div></div>
+<div class="kpi-card neutral"><div class="kpi-label">RM Shortage รวม (KG)</div><div class="kpi-value" id="rmKpiShortage">-</div><div class="kpi-sub" id="rmKpiShortageSub"></div><div class="kpi-icon">⚠️</div></div>
+<div class="kpi-card neutral"><div class="kpi-label">RM Shortage สูงสุด</div><div class="kpi-value" id="rmKpiTopRM" style="font-size:14px">-</div><div class="kpi-sub" id="rmKpiTopRMSub"></div><div class="kpi-icon">🔴</div></div>
+<div class="kpi-card neutral"><div class="kpi-label">วันที่ Demand สูงสุด</div><div class="kpi-value" id="rmKpiPeakDay" style="font-size:14px">-</div><div class="kpi-sub" id="rmKpiPeakDaySub"></div><div class="kpi-icon">📅</div></div>
+</div>
+
+<!-- SECTION 2: Gauge + Exec Summary Cards -->
+<div class="rm-exec-grid" id="rmExecGrid" style="margin-bottom:12px">
+<div class="rm-gauge-card" id="rmGaugeCard">
+<svg id="rmGaugeSvg" viewBox="0 0 200 112" width="160" height="90" style="display:block">
+<path d="M 22 100 A 78 78 0 0 1 178 100" fill="none" stroke="#e2e8f0" stroke-width="18" stroke-linecap="round"/>
+<path id="rmGaugeArc" d="M 22 100 A 78 78 0 0 1 178 100" fill="none" stroke="#22c55e" stroke-width="18" stroke-linecap="round" stroke-dasharray="0 245" stroke-dashoffset="0"/>
+<text id="rmGaugePct" x="100" y="94" text-anchor="middle" font-size="24" font-weight="800" fill="#1e293b">0%</text>
+<text x="22" y="110" text-anchor="middle" font-size="8" fill="#22c55e">0%</text>
+<text x="178" y="110" text-anchor="middle" font-size="8" fill="#dc2626">100%</text>
+</svg>
+<div class="rm-gauge-label">Factory Supply Risk</div>
+</div>
+<div class="rm-exec-card"><div class="rm-exec-label">Total RM Shortage</div><div class="rm-exec-val" id="rmExecShortage">—</div><div class="rm-exec-sub">KG</div></div>
+<div class="rm-exec-card"><div class="rm-exec-label">Critical RM Count</div><div class="rm-exec-val" id="rmExecCritical">—</div><div class="rm-exec-sub">Impact &gt; 3,000</div></div>
+<div class="rm-exec-card"><div class="rm-exec-label">Average Coverage</div><div class="rm-exec-val" id="rmExecCoverage">—</div><div class="rm-exec-sub">Delivered ÷ Demand</div></div>
+<div class="rm-exec-card"><div class="rm-exec-label">Total Impact Score</div><div class="rm-exec-val" id="rmExecImpact">—</div><div class="rm-exec-sub">FG Count × Shortage</div></div>
+</div>
+
+<!-- SECTION 3: Production Risk Heatmap -->
+<div class="rm-heatmap-section" style="margin-bottom:12px"><div class="rm-heatmap-title">🌡 Production Risk Heatmap<span style="font-size:10px;font-weight:400;color:#94a3b8;margin-left:auto">คลิก tile เพื่อดูใน RM Report</span></div><div class="rm-heatmap-grid" id="rmHeatmapGrid"><div style="color:#94a3b8;font-size:12px;padding:20px;grid-column:1/-1;text-align:center">กำลังโหลด...</div></div></div>
+
+<!-- SECTION 4: Top Critical Ranking -->
+<div class="rm-ranking-section" style="margin-bottom:12px"><div class="rm-ranking-title">⚡ Top 10 Critical Materials — sorted by Impact Score</div>
+<table class="rm-ranking-tbl"><thead><tr><th style="width:40px">#</th><th>RM Name</th><th class="num">Shortage KG</th><th class="num">FG Count</th><th class="num">Coverage %</th><th class="num">Impact Score</th></tr></thead>
+<tbody id="rmRankingBody"><tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:16px">กำลังโหลด...</td></tr></tbody></table></div>
+
+<!-- SECTION 5: Risk Tables (compact 3-col) -->
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+<div class="section-card" style="padding:14px;max-height:320px;overflow-y:auto"><h3 style="font-size:13px;color:var(--primary)">Top RM by Demand (KG)</h3><table class="mini-tbl"><thead><tr><th>#</th><th>RM Name</th><th style="text-align:right">Demand KG</th></tr></thead><tbody id="rmTopDemandBody"></tbody></table></div>
+<div class="section-card" style="padding:14px;max-height:320px;overflow-y:auto"><h3 style="font-size:13px;color:#dc2626">Top RM by Shortage (KG)</h3><table class="mini-tbl"><thead><tr><th>#</th><th>RM Name</th><th style="text-align:right">Shortage KG</th></tr></thead><tbody id="rmTopShortageBody"></tbody></table></div>
+<div class="section-card" style="padding:14px;max-height:320px;overflow-y:auto"><h3 style="font-size:13px;color:#059669">RM by FG Usage Count</h3><table class="mini-tbl"><thead><tr><th>#</th><th>RM Name</th><th style="text-align:right">FG Count</th></tr></thead><tbody id="rmTopUsageBody"></tbody></table></div>
+</div>
+
+<!-- SECTION 6: RM Detail Table -->
+<div class="section-card" style="padding:14px">
+<h3 style="font-size:13px">RM Detail Table</h3>
+<div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+<input type="text" id="rmSearch" placeholder="ค้นหา RM..." oninput="filterRMDetail()" style="padding:6px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:11px;width:200px">
+<span id="rmDetailInfo" style="font-size:11px;color:var(--gray)"></span>
+</div>
+<div class="excel-wrap" style="max-height:420px;overflow:auto">
+<table id="rmDetailTable" style="width:100%;font-size:11px;border-collapse:collapse">
+<thead style="position:sticky;top:0;z-index:2;background:#e2e8f0"><tr>
+<th style="padding:6px 8px">Date</th><th style="padding:6px 8px">RM Code</th><th style="padding:6px 8px">RM Name</th>
+<th style="padding:6px 8px;text-align:right">Demand (KG)</th><th style="padding:6px 8px;text-align:right">Delivered (KG)</th>
+<th style="padding:6px 8px;text-align:right">Shortage (KG)</th><th style="padding:6px 8px">Related FG</th>
+</tr></thead><tbody id="rmDetailBody"></tbody></table>
+</div>
+<div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+<button onclick="rmDetailGo(rmDetailPage-1)" style="padding:4px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer">&lt;</button>
+<span id="rmDetailPageInfo" style="font-size:11px;color:var(--gray)"></span>
+<button onclick="rmDetailGo(rmDetailPage+1)" style="padding:4px 10px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;cursor:pointer">&gt;</button>
+</div>
+</div>
+
+</div><!-- end tabRm -->
+
+<!-- ═══ TAB 8: RM Report ═══ -->
+<div class="tab-content" id="tabRmreport" style="padding:16px">
+<div class="rmr-filter-panel">
+<div class="filter-group"><label>สัปดาห์ (Week)</label><select id="rmrFWeek" onchange="rmrWeekChange()"><option value="">ทั้งหมด</option></select></div>
+<div class="filter-group"><label>ช่วงวันที่</label><div class="date-range"><input type="date" id="rmrFDateFrom" onchange="rmrLocalFilter()"><span>ถึง</span><input type="date" id="rmrFDateTo" onchange="rmrLocalFilter()"></div></div>
+<div class="filter-group"><label>กลุ่ม (Group)</label><select id="rmrFGroup" onchange="rmrLocalFilter()"><option value="">ทั้งหมด</option></select></div>
+<div class="filter-group"><label>RM Code</label><select id="rmrFCode" onchange="rmrLocalFilter()"><option value="">ทั้งหมด</option></select></div>
+<div class="filter-group"><label>RM Name</label><input type="text" id="rmrFName" placeholder="พิมพ์ชื่อ RM..." oninput="rmrLocalFilter()" style="min-width:180px"></div>
+<div class="filter-group" style="align-self:flex-end"><button class="rmr-reset-btn" onclick="rmrResetFilters()">↺ รีเซ็ต</button></div>
+</div>
+<div class="rmr-toolbar">
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+<input type="text" id="rmrSearch" class="rmr-search" placeholder="🔍 ค้นหา RM Code / RM Name..." oninput="_applyRMReport()">
+<span id="rmrRowCount" style="font-size:11px;color:var(--gray);white-space:nowrap"></span>
+</div>
+<button class="rmr-export-btn" onclick="exportRMReportExcel()"><span>📥</span> Export to Excel</button>
+</div>
+<div class="rmr-tbl-wrap">
+<table class="rmr-tbl" id="rmrTable"><thead><tr>
+<th class="rmr-th rmr-sortable" data-col="date" onclick="rmrSort('date')">วันที่ <span class="rmr-sort-icon" id="rmrIcon_date"></span></th>
+<th class="rmr-th rmr-sortable" data-col="rmCode" onclick="rmrSort('rmCode')">RM Code <span class="rmr-sort-icon" id="rmrIcon_rmCode"></span></th>
+<th class="rmr-th rmr-sortable" data-col="rmName" onclick="rmrSort('rmName')">RM Name <span class="rmr-sort-icon" id="rmrIcon_rmName"></span></th>
+<th class="rmr-th rmr-sortable rmr-num" data-col="demand" onclick="rmrSort('demand')">Demand (KG) <span class="rmr-sort-icon" id="rmrIcon_demand"></span></th>
+<th class="rmr-th rmr-sortable rmr-num" data-col="delivered" onclick="rmrSort('delivered')">Delivered (KG) <span class="rmr-sort-icon" id="rmrIcon_delivered"></span></th>
+<th class="rmr-th rmr-sortable rmr-num" data-col="shortage" onclick="rmrSort('shortage')">Shortage (KG) <span class="rmr-sort-icon" id="rmrIcon_shortage"></span></th>
+<th class="rmr-th rmr-sortable" data-col="group" onclick="rmrSort('group')">Group <span class="rmr-sort-icon" id="rmrIcon_group"></span></th>
+<th class="rmr-th rmr-sortable rmr-num" data-col="fgCount" onclick="rmrSort('fgCount')">FG Count <span class="rmr-sort-icon" id="rmrIcon_fgCount"></span></th>
+<th class="rmr-th rmr-sortable rmr-num" data-col="coverage" onclick="rmrSort('coverage')">Coverage % <span class="rmr-sort-icon" id="rmrIcon_coverage"></span></th>
+<th class="rmr-th rmr-sortable" data-col="risk" onclick="rmrSort('risk')">Risk <span class="rmr-sort-icon" id="rmrIcon_risk"></span></th>
+<th class="rmr-th rmr-sortable rmr-num" data-col="impact" onclick="rmrSort('impact')">Impact Score <span class="rmr-sort-icon" id="rmrIcon_impact"></span></th>
+</tr></thead><tbody id="rmrTbody"></tbody></table>
+</div>
+<div class="rmr-pager" id="rmrPager"></div>
+</div><!-- end tabRmreport -->
+
+
+
+<!-- ═══ TAB 9: RM Planning ═══ -->
+<div class="tab-content" id="tabRmplan" style="padding:16px">
+
+<div class="section-card" id="rmPlanSection" style="padding:14px;margin-bottom:12px">
+
+  <div class="rmp-header">
+    <div class="rmp-title">🧠 RM Planning Engine — Flexible Base Week
+      <span class="rmp-w2-badge" id="rmpW2Badge">Base: —</span>
+    </div>
+    <div class="rmp-ctrl">
+      <button class="rmp-refresh-btn" onclick="runRMPlanning()">⟳ คำนวณใหม่</button>
+      <button class="rmp-export-btn" onclick="exportRMPlanningExcel()">⬇ Export Excel</button>
+    </div>
+  </div>
+
+  <!-- Filter Panel -->
+  <div class="rmp-fp">
+    <div class="rmp-fp-row">
+      <div class="rmp-fp-group">
+        <label>🎯 Target Week <span style="font-size:9px;color:#64748b">(สัปดาห์ที่วางแผน)</span></label>
+        <select id="rmpTargetWeek" onchange="rmpWeekChange()" style="min-width:200px">
+          <option value="">— เลือก Target Week —</option>
+        </select>
+      </div>
+      <div class="rmp-fp-group">
+        <label>📊 Base Week <span style="font-size:9px;color:#6366f1;font-weight:700">DEMAND BASIS</span></label>
+        <select id="rmpBaseWeek" onchange="rmpBaseWeekChange()" style="min-width:200px">
+          <option value="">— เลือก Base Week —</option>
+        </select>
+      </div>
+      <div class="rmp-fp-group">
+        <label>📦 Buffer %</label>
+        <input type="number" id="rmpBuffer" class="rmp-buf-input" value="20" min="0" max="200" step="5"
+               title="Safety buffer" style="width:68px">
+      </div>
+      <div class="rmp-fp-group">
+        <label>🏷 RM Group</label>
+        <select id="rmpGroupFilter" style="min-width:130px">
+          <option value="">ทุก Group</option>
+        </select>
+      </div>
+      <div class="rmp-fp-group">
+        <label>🔍 RM Name / Code</label>
+        <input type="text" id="rmpSearch" placeholder="พิมพ์ชื่อหรือรหัส RM..." style="width:190px">
+      </div>
+    </div>
+    <div class="rmp-fp-row" style="align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:11px;font-weight:600;color:var(--gray)">วันที่ต้องการวางแผน:</span>
+      <button class="rmp-quick-btn" onclick="rmpSelectDays('weekday')">Weekday</button>
+      <button class="rmp-quick-btn" onclick="rmpSelectDays('all')">ทั้งหมด</button>
+      <button class="rmp-quick-btn" onclick="rmpSelectDays('clear')">ล้าง</button>
+      <div class="rmp-day-bar" id="rmpPlanDayBar">
+        <label class="rmp-day-lbl rmp-day-on"><input type="checkbox" value="0" onchange="rmpDayToggle(this)" checked>จ</label>
+        <label class="rmp-day-lbl rmp-day-on"><input type="checkbox" value="1" onchange="rmpDayToggle(this)" checked>อ</label>
+        <label class="rmp-day-lbl rmp-day-on"><input type="checkbox" value="2" onchange="rmpDayToggle(this)" checked>พ</label>
+        <label class="rmp-day-lbl rmp-day-on"><input type="checkbox" value="3" onchange="rmpDayToggle(this)" checked>พฤ</label>
+        <label class="rmp-day-lbl rmp-day-on"><input type="checkbox" value="4" onchange="rmpDayToggle(this)" checked>ศ</label>
+        <label class="rmp-day-lbl"><input type="checkbox" value="5" onchange="rmpDayToggle(this)">ส</label>
+        <label class="rmp-day-lbl"><input type="checkbox" value="6" onchange="rmpDayToggle(this)">อา</label>
+      </div>
+    </div>
+    <div class="rmp-fp-row" style="align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px">
+      <span style="font-size:11px;font-weight:600;color:var(--gray)">📂 Stock File (.xlsx):</span>
+      <label class="rmp-stock-btn">
+        เลือกไฟล์ Stock
+        <input type="file" accept=".xlsx" style="display:none"
+               onchange="parseStockFile(this.files[0])">
+      </label>
+      <span id="rmpStockBadge" class="rmp-stock-badge"
+            title="อัปโหลดไฟล์ Stock เพื่อคำนวณ Planned Import = max(0, Demand − Stock) × (1 + Buffer%)">
+        ยังไม่มีไฟล์ Stock — ใช้ W-2 Actual แทน
+      </span>
+    </div>
+  </div>
+
+  <div class="rmp-kpi-strip">
+    <div class="rmp-kpi">
+      <div class="rmp-kpi-val" id="rmpKpiCritical" style="color:#b91c1c">—</div>
+      <div class="rmp-kpi-lbl">⚠ CRITICAL RM (Coverage &lt;30%)</div>
+    </div>
+    <div class="rmp-kpi">
+      <div class="rmp-kpi-val" id="rmpKpiWarning" style="color:#c2410c">—</div>
+      <div class="rmp-kpi-lbl">⚡ WARNING RM (Coverage &lt;70%)</div>
+    </div>
+    <div class="rmp-kpi">
+      <div class="rmp-kpi-val" id="rmpKpiImport" style="color:#276749">—</div>
+      <div class="rmp-kpi-lbl">📦 Total Planned Import (KG)</div>
+    </div>
+    <div class="rmp-kpi">
+      <div class="rmp-kpi-val" id="rmpKpiRMs" style="color:#1d4ed8">—</div>
+      <div class="rmp-kpi-lbl">📋 RM Items</div>
+    </div>
+  </div>
+
+  <div class="rmp-tbl-wrap">
+    <table class="rmp-tbl" id="rmpTable">
+      <thead id="rmpThead"><tr>
+        <th style="width:30px;text-align:center">#</th>
+        <th>RM Name</th>
+        <th class="rmp-num">W-2 Demand (KG)<br><span style="font-weight:400;font-size:9px">(baseline)</span></th>
+        <th class="rmp-num">Coverage<br><span style="font-weight:400;font-size:9px">(Actual KG)</span></th>
+        <th class="rmp-num">Total Import (KG)</th>
+        <th style="text-align:center">Risk</th>
+        <th>Note</th>
+      </tr></thead>
+      <tbody id="rmpTbody">
+        <tr><td colspan="7" style="text-align:center;padding:20px;color:#94a3b8;font-size:12px">
+          เลือก Target Week แล้วกด <strong>คำนวณใหม่</strong> เพื่อเริ่มวิเคราะห์
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+</div><!-- end tabRmplan -->
+</div><!-- end tab-body -->
+</div><!-- end container -->
+</div><!-- end main-content -->
+</div><!-- end app-layout -->
+
+
+<!-- XLSX load check (runs before dashboard init) -->
+<script>
+if(typeof XLSX!=='undefined'){
+  console.log('[Dashboard] SheetJS XLSX loaded OK — version: '+(XLSX.version||'unknown'));
+}else{
+  console.error('[Dashboard] SheetJS XLSX failed to load. Excel export will not work. Check CDN connectivity.');
+}
+</script>
+
+<!-- Dashboard data and logic -->
+<!-- ★ data.js REMOVED (2026-03-23): ONLY data.json via fetch — NO fallback -->
+<script src="./js/app.js"></script>
+
+</body>
+</html>
